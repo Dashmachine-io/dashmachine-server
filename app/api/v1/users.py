@@ -5,56 +5,10 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
 from app import schemas, crud
-from app.core import recommendations
 from app.models.user import User
 from app.api.deps import get_db
 
 router = APIRouter()
-
-
-@router.get("/check_phone", response_model=schemas.user.CheckPhoneResponse)
-def check_phone(
-    phone: str,
-    db: Session = Depends(get_db),
-) -> Any:
-    """
-    Check if phone number is registered to user, returns 'login' or 'register'
-    """
-    user = crud.user.get_by_phone(db, phone)
-    if user:
-        return {"message": "login"}
-    else:
-        return {"message": "register"}
-
-
-@router.post(
-    "/create_sms_verification",
-    response_model=schemas.user_verification_code.CodeCreateResponse,
-)
-def create_sms_verification(
-    *, db: Session = Depends(get_db), obj_in: schemas.user_verification_code.CodeCreate
-) -> Any:
-    """
-    Create SMS verification record for user by phone number.
-    """
-    crud.user_verification_code.create(db, obj_in=obj_in)
-    return {"message": "sent"}
-
-
-@router.post(
-    "/verify_sms_verification",
-    response_model=schemas.user_verification_code.CodeVerifyOut,
-)
-def create_sms_verification(
-    *,
-    db: Session = Depends(get_db),
-    obj_in: schemas.user_verification_code.CodeVerifyIn,
-) -> Any:
-    """
-    Check to see if verification matching phone and code exist
-    """
-    response = crud.user_verification_code.verify_code(db, obj_in=obj_in)
-    return {"message": response}
 
 
 @router.post("/create", response_model=schemas.Message)
@@ -113,21 +67,3 @@ def update_user(
     user = crud.user.update(db, db_obj=current_user, obj_in=user_in)
     return user
 
-
-@router.get(
-    "/recommended",
-    response_model=List[schemas.user.UserResponse],
-)
-def recommended(
-    age_min: Optional[int] = Query(None),
-    age_max: Optional[int] = Query(None),
-    activities: Optional[List[int]] = Query(None),
-    current_user: User = Depends(crud.user.get_current_user),
-    db: Session = Depends(get_db),
-) -> Any:
-    """
-    Retrieve recommended list of users for the current user
-    """
-    return recommendations.users.get(
-        db, current_user, age_max=age_max, age_min=age_min, activities=activities
-    )
