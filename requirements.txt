@@ -1,0 +1,12 @@
+fastapi
+uvicorn
+sqlalchemy
+pydantic
+alembic
+passlib[bcrypt]
+fastapi-socketio
+python-jose[cryptography]
+python-multipart
+imagekitio
+reverse_geocoder
+python-dateutil
