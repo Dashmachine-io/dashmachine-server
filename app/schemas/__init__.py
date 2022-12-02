@@ -1,2 +1,2 @@
-from . import Message
+from .message import Message
 from . import user
